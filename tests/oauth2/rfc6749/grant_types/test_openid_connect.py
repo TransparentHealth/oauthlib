@@ -90,6 +90,44 @@ class OpenIDAuthCodeTest(TestCase):
         self.assertEqual(s, 302)
 
     @mock.patch('oauthlib.common.generate_token')
+    def test_ui_locales_authorization(self, generate_token):
+        self.request.ui_locales = 'en'
+        scope, info = self.auth.validate_authorization_request(self.request)
+
+        generate_token.return_value = 'abc'
+        bearer = BearerToken(self.mock_validator)
+        self.request.response_mode = 'query'
+        h, b, s = self.auth.create_authorization_response(self.request, bearer)
+        self.assertURLEqual(h['Location'], self.url_query)
+        self.assertEqual(b, None)
+        self.assertEqual(s, 302)
+
+        self.request.response_mode = 'fragment'
+        h, b, s = self.auth.create_authorization_response(self.request, bearer)
+        self.assertURLEqual(h['Location'], self.url_fragment, parse_fragment=True)
+        self.assertEqual(b, None)
+        self.assertEqual(s, 302)
+
+    @mock.patch('oauthlib.common.generate_token')
+    def test_ui_locales_list_authorization(self, generate_token):
+        self.request.ui_locales = ['en']
+        scope, info = self.auth.validate_authorization_request(self.request)
+
+        generate_token.return_value = 'abc'
+        bearer = BearerToken(self.mock_validator)
+        self.request.response_mode = 'query'
+        h, b, s = self.auth.create_authorization_response(self.request, bearer)
+        self.assertURLEqual(h['Location'], self.url_query)
+        self.assertEqual(b, None)
+        self.assertEqual(s, 302)
+
+        self.request.response_mode = 'fragment'
+        h, b, s = self.auth.create_authorization_response(self.request, bearer)
+        self.assertURLEqual(h['Location'], self.url_fragment, parse_fragment=True)
+        self.assertEqual(b, None)
+        self.assertEqual(s, 302)
+
+    @mock.patch('oauthlib.common.generate_token')
     def test_no_prompt_authorization(self, generate_token):
         generate_token.return_value = 'abc'
         scope, info = self.auth.validate_authorization_request(self.request)
